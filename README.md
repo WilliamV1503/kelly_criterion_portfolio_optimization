@@ -16,6 +16,8 @@ The sum of squared errors of all entries in each day's forecasted Cholesky facto
 
 To Do: 
 
+Adjust objective function so that weights aren't near zero when the fractions aren't forced to sum up to 1 (or consider adding more stocks to portfolio)
+
 Optimize time series generation and model selection for each Cholesky factor entry. 
 
 Obtain better metric for the risk-free rate
