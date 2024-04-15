@@ -92,19 +92,14 @@ def normalize_fractions(group):
     return group
 
 #applies optimization from Frontiers paper https://www.frontiersin.org/articles/10.3389/fams.2020.577050/full
-def correlated_kelly(df,window=504,use_total_balance=True):
+def correlated_kelly(df,window=504):
     
     date_count = len(df["date"].unique())
     stock_dim = len(df["ticker"].unique())
     df['kelly_fraction']=0
-    if use_total_balance:
-        #sum of all fractions == 1
-        constraints = [{'type': 'eq', 'fun': lambda F: np.sum(F)-1}]
-    else:
-        #sum of all fractions <=1
-        constraints = [{'type': 'ineq', 'fun': lambda F: 1-np.sum(F)}]
+    constraints = [{'type': 'ineq', 'fun': lambda F: 1-np.sum(F)}]
     bounds = [(0,1) for _ in range(stock_dim)]
-    F_initial = np.array([1/stock_dim]*stock_dim)
+    F_initial = np.array([random.uniform(0,1/stock_dim) for _ in range(stock_dim)])
 
     for d in range(1,date_count-window):
         
@@ -114,12 +109,11 @@ def correlated_kelly(df,window=504,use_total_balance=True):
         temp = temp.pivot(index="date",columns="ticker",values="return")
         cov = temp.cov().values
         mean = temp.mean().values
-        inv_cov = np.linalg.inv(cov)
         rf_rate = .01/252
         r = np.array([rf_rate]*stock_dim)
     
         def objective(F):
-            return -(rf_rate + F.T@(mean-r)-((1/2)*F.T@inv_cov@F))
+            return -(rf_rate + F.T@(mean-r)-((1/2)*F.T@cov@F))
     
         result = minimize(objective,F_initial,method="SLSQP",
                         bounds=bounds, constraints=constraints)
@@ -240,17 +234,13 @@ def main():
     df1 = preprocess_data(df)
 
     kelly_1 = noncorrelated_kelly(df1,window=504)
-    kelly_2 = correlated_kelly(df1,window=504,use_total_balance=True)
-    kelly_3 = correlated_kelly(df1,window=504,use_total_balance=False)
+    kelly_2 = correlated_kelly(df1,window=504)
 
     trade_1 = backtest_kelly(kelly_1,tickers,initial_balance)
     trade_2 = backtest_kelly(kelly_2,tickers,initial_balance)
-    trade_3 = backtest_kelly(kelly_3,tickers,initial_balance)
 
     portfolio_performance(trade_1,"port_return","port_value","^TNX",252)
     portfolio_performance(trade_2,"port_return","port_value","^TNX",252)
-    portfolio_performance(trade_3,"port_return","port_value","^TNX",252)
     
     plot_performance(trade_1)
     plot_performance(trade_2)
-    plot_performance(trade_3)
