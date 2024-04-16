@@ -9,7 +9,7 @@ Portfolio 2: Forecasated Daily Rolling Kelly - Use k historical n-day-lookback c
 Portfolio 3: Monthly Rolling Kelly - Use the previous month's covariance matrix with n-month lookback to calculate Kelly fractions for the next month (effective at start of month)
 
 Different metrics and return plots are generated for each portfolio:
-* Monthly Rolling Kelly had highest annualized sharpe ratio of 0.79
+* Monthly Rolling Kelly had highest annualized sharpe ratio of 0.76
 
 
 To Do: 
